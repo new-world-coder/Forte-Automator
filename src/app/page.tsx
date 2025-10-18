@@ -8,13 +8,15 @@ import { mockRules } from '@/lib/mockData';
 import { RuleSummary, RuleDetail } from '@/lib/types';
 import { useFlowWallet } from '@/lib/hooks/useFlowWallet';
 import { useForteAutomation } from '@/lib/hooks/useForteAutomation';
+import { useForteAgents } from '@/lib/hooks/useForteAgents';
 import { useAppNotifications } from '@/lib/contexts/NotificationContext';
 import Button from '@/components/ui/Button';
 
 export default function Home() {
   const { isConnected, address } = useFlowWallet();
   const { createRule, updateRuleStatus, deleteRule, fetchUserRules, loading: automationLoading } = useForteAutomation();
-  const { showRuleCreated, showRuleUpdated, showRuleDeleted, showRuleError } = useAppNotifications();
+  const { registerAgent } = useForteAgents();
+  const { showRuleCreated, showRuleUpdated, showRuleDeleted, showRuleError, showSuccess } = useAppNotifications();
   const [rules, setRules] = useState<RuleSummary[]>(mockRules);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingRule, setEditingRule] = useState<RuleDetail | undefined>();
@@ -70,8 +72,26 @@ export default function Home() {
       };
       setRules(prev => [...prev, newRule]);
       
-      // Show success notification
-      showRuleCreated(ruleData.name || 'Untitled Rule');
+      // Register as Forte agent if rule is active
+      if (ruleData.status === 'Active') {
+        try {
+          await registerAgent({
+            ruleId: ruleId,
+            ruleName: ruleData.name || 'Untitled Rule',
+            condition: ruleData.condition || '',
+            action: ruleData.action || '',
+            isActive: true,
+          });
+          showSuccess('Agent Registered', `Automation agent has been registered for "${ruleData.name}"`);
+        } catch (agentError) {
+          console.error('Failed to register agent:', agentError);
+          // Don't fail the whole operation if agent registration fails
+          showRuleCreated(ruleData.name || 'Untitled Rule');
+        }
+      } else {
+        // Show success notification for inactive rules
+        showRuleCreated(ruleData.name || 'Untitled Rule');
+      }
     } catch (error) {
       console.error('Failed to create rule:', error);
       showRuleError(error instanceof Error ? error.message : 'Failed to create rule. Please try again.');

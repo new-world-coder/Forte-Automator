@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import Button from './ui/Button';
 import { useFlowWallet } from '@/lib/hooks/useFlowWallet';
 import { useAppNotifications } from '@/lib/contexts/NotificationContext';
@@ -8,10 +10,18 @@ import { useAppNotifications } from '@/lib/contexts/NotificationContext';
 export default function HeaderBar() {
   const { address, isConnected, loading, connectWallet, disconnectWallet, user } = useFlowWallet();
   const { showWalletConnected, showWalletDisconnected, showWalletError } = useAppNotifications();
+  const pathname = usePathname();
   
   const displayAddress = address 
     ? `${address.slice(0, 6)}...${address.slice(-4)}`
     : null;
+
+  const navigation = [
+    { name: 'Dashboard', href: '/', current: pathname === '/' },
+    { name: 'Agents', href: '/agents', current: pathname === '/agents' },
+    { name: 'Settings', href: '/settings', current: pathname === '/settings' },
+    { name: 'Testnet', href: '/testnet', current: pathname === '/testnet' },
+  ];
 
   // Show notifications when wallet connection status changes
   useEffect(() => {
@@ -41,11 +51,28 @@ export default function HeaderBar() {
     <header className="sticky top-0 z-40 w-full bg-white shadow-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Left: App title */}
-          <div className="flex items-center">
-            <h1 className="text-xl font-bold text-gray-900">
+          {/* Left: App title and navigation */}
+          <div className="flex items-center space-x-8">
+            <Link href="/" className="text-xl font-bold text-gray-900 hover:text-blue-600">
               Forte Automator
-            </h1>
+            </Link>
+            
+            {/* Navigation */}
+            <nav className="hidden md:flex space-x-6">
+              {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`text-sm font-medium transition-colors ${
+                    item.current
+                      ? 'text-blue-600'
+                      : 'text-gray-700 hover:text-blue-600'
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </nav>
           </div>
 
           {/* Right: Wallet connection */}

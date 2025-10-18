@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import HeaderBar from '@/components/HeaderBar';
 import RuleCard from '@/components/RuleCard';
 import RuleEditorModal from '@/components/RuleEditorModal';
@@ -22,14 +22,7 @@ export default function Home() {
   const [editingRule, setEditingRule] = useState<RuleDetail | undefined>();
   const [loading, setLoading] = useState(false);
 
-  // Fetch user rules from blockchain when wallet connects
-  useEffect(() => {
-    if (isConnected && address) {
-      fetchUserRulesFromBlockchain();
-    }
-  }, [isConnected, address]);
-
-  const fetchUserRulesFromBlockchain = async () => {
+  const fetchUserRulesFromBlockchain = useCallback(async () => {
     if (!address) return;
     
     setLoading(true);
@@ -44,7 +37,14 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [address, fetchUserRules]);
+
+  // Fetch user rules from blockchain when wallet connects
+  useEffect(() => {
+    if (isConnected && address) {
+      fetchUserRulesFromBlockchain();
+    }
+  }, [isConnected, address, fetchUserRulesFromBlockchain]);
 
   const handleCreateRule = async (ruleData: Partial<RuleDetail>) => {
     if (!isConnected) {
@@ -174,12 +174,9 @@ export default function Home() {
   // Add debugging to see if we reach this point
   console.log('Home component rendering', { isConnected, address, rules });
 
-  // Add a simple error boundary fallback
-  if (typeof window !== 'undefined') {
-    try {
-      return (
-        <div className="min-h-screen bg-gray-50">
-          <HeaderBar />
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <HeaderBar />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header Section */}

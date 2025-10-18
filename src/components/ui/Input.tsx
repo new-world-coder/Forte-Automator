@@ -8,6 +8,7 @@ interface InputProps {
   type?: 'text' | 'number' | 'email';
   error?: string;
   className?: string;
+  disabled?: boolean;
 }
 
 export default function Input({
@@ -17,7 +18,8 @@ export default function Input({
   placeholder,
   type = 'text',
   error,
-  className = ''
+  className = '',
+  disabled = false
 }: InputProps) {
   const baseClasses = 'block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary';
   const errorClasses = error ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : '';
@@ -34,7 +36,8 @@ export default function Input({
         value={value}
         onChange={(e) => onChange?.(e.target.value)}
         placeholder={placeholder}
-        className={`${baseClasses} ${errorClasses}`}
+        disabled={disabled}
+        className={`${baseClasses} ${errorClasses} ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
       />
       {error && (
         <p className="mt-1 text-sm text-red-600" role="alert">

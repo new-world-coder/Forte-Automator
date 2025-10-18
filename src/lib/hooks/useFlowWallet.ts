@@ -14,15 +14,22 @@ export interface FlowUser {
 export const useFlowWallet = () => {
   const [user, setUser] = useState<FlowUser>({ loggedIn: false });
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Listen for user changes
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    
+    // Listen for user changes - only on client side
     try {
       fcl.currentUser.subscribe(setUser);
     } catch (error) {
       console.error('Failed to subscribe to FCL current user:', error);
     }
-  }, []);
+  }, [mounted]);
 
   const connectWallet = async () => {
     setLoading(true);
@@ -78,7 +85,7 @@ export const useFlowWallet = () => {
     connectWallet,
     disconnectWallet,
     getBalance,
-    isConnected: user.loggedIn || false,
-    address: user.addr,
+    isConnected: mounted && (user.loggedIn || false),
+    address: mounted ? user.addr : null,
   };
 };

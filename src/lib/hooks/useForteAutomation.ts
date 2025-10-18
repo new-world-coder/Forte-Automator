@@ -51,6 +51,10 @@ export const useForteAutomation = () => {
           arg(ruleData.action, t.String),
           arg(ruleData.isActive, t.Bool),
         ],
+        proposer: fcl.currentUser,
+        payer: fcl.currentUser,
+        authorizations: [fcl.currentUser],
+        limit: 1000,
       });
 
       await fcl.tx(transaction).onceSealed();
@@ -88,6 +92,10 @@ export const useForteAutomation = () => {
           arg(ruleId, t.String),
           arg(isActive, t.Bool),
         ],
+        proposer: fcl.currentUser,
+        payer: fcl.currentUser,
+        authorizations: [fcl.currentUser],
+        limit: 1000,
       });
 
       await fcl.tx(transaction).onceSealed();
@@ -120,6 +128,10 @@ export const useForteAutomation = () => {
           }
         `,
         args: (arg: any, t: any) => [arg(ruleId, t.String)],
+        proposer: fcl.currentUser,
+        payer: fcl.currentUser,
+        authorizations: [fcl.currentUser],
+        limit: 1000,
       });
 
       await fcl.tx(transaction).onceSealed();

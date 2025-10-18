@@ -5,7 +5,9 @@ import Modal from './ui/Modal';
 import Input from './ui/Input';
 import Button from './ui/Button';
 import RuleBuilder, { ConditionType, ActionType } from './RuleBuilder';
+import GasEstimation from './GasEstimation';
 import { RuleDetail } from '@/lib/types';
+import { GasEstimate } from '@/lib/hooks/useGasEstimation';
 
 interface RuleEditorModalProps {
   isOpen: boolean;
@@ -35,6 +37,8 @@ export default function RuleEditorModal({ isOpen, onClose, onSave, rule }: RuleE
     token: 'ETH',
     recipient: 'USDC',
   });
+
+  const [gasEstimate, setGasEstimate] = useState<GasEstimate | null>(null);
 
   // Helper function to convert condition/action to human readable strings
   const formatCondition = (cond: ConditionType): string => {
@@ -151,6 +155,19 @@ export default function RuleEditorModal({ isOpen, onClose, onSave, rule }: RuleE
             <span className="text-sm font-medium text-gray-700">Active</span>
           </label>
         </div>
+
+        {/* Gas Estimation */}
+        <GasEstimation
+          operation={rule ? 'update' : 'create'}
+          ruleData={{
+            name: formData.name,
+            condition: condition.value ? formatCondition(condition) : formData.condition,
+            action: action.amount || action.value ? formatAction(action) : formData.action,
+            isActive: formData.status === 'Active',
+          }}
+          ruleId={rule?.id}
+          onEstimateChange={setGasEstimate}
+        />
 
         <div className="flex justify-end space-x-3 pt-6">
           <Button variant="secondary" onClick={onClose}>

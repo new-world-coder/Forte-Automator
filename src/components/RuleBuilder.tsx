@@ -114,11 +114,38 @@ export default function RuleBuilder({
                 type="number"
                 placeholder="2000"
               />
-              {condition.token && currentPrice && (
-                <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                  <span className="font-medium">Current {condition.token} price:</span> 
-                  {' '}${currentPrice.toFixed(2)}
-                  {priceLoading && <span className="ml-2 text-blue-600">(updating...)</span>}
+              {condition.token && (
+                <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded border">
+                  {currentPrice ? (
+                    <div className="space-y-1">
+                      <div>
+                        <span className="font-medium">Current {condition.token} price:</span> 
+                        {' '}${currentPrice.toFixed(2)}
+                        {priceLoading && <span className="ml-2 text-blue-600">(updating...)</span>}
+                      </div>
+                      {prices.has(condition.token.toUpperCase()) && (
+                        <div className="text-xs">
+                          Last updated: {new Date(prices.get(condition.token.toUpperCase())?.lastUpdated || '').toLocaleTimeString()}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <span>No price data for {condition.token}</span>
+                      <Button 
+                        size="sm" 
+                        variant="secondary"
+                        onClick={() => {
+                          if (condition.token) {
+                            getTokenPrice(condition.token.toUpperCase());
+                          }
+                        }}
+                        disabled={priceLoading}
+                      >
+                        {priceLoading ? 'Loading...' : 'Fetch Price'}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

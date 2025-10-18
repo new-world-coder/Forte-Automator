@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import HeaderBar from '@/components/HeaderBar';
 import RuleCard from '@/components/RuleCard';
 import RuleEditorModal from '@/components/RuleEditorModal';
+import ExecutionMonitor from '@/components/ExecutionMonitor';
 import { mockRules } from '@/lib/mockData';
 import { RuleSummary, RuleDetail } from '@/lib/types';
 import { useFlowWallet } from '@/lib/hooks/useFlowWallet';
@@ -195,16 +196,23 @@ export default function Home() {
 
         {/* Rules Grid */}
         {rules.length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {rules.map((rule) => (
-              <RuleCard
-                key={rule.id}
-                rule={rule}
-                onEdit={() => handleEditRule(rule)}
-                onPause={() => handlePauseRule(rule.id)}
-                onDelete={() => handleDeleteRule(rule.id)}
-              />
-            ))}
+          <div className="space-y-8">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {rules.map((rule) => (
+                <RuleCard
+                  key={rule.id}
+                  rule={rule}
+                  onEdit={() => handleEditRule(rule)}
+                  onPause={() => handlePauseRule(rule.id)}
+                  onDelete={() => handleDeleteRule(rule.id)}
+                />
+              ))}
+            </div>
+            
+            {/* Execution Monitor Section */}
+            <div className="mt-8">
+              <ExecutionMonitor showAll={true} />
+            </div>
           </div>
         ) : (
           <div className="text-center py-12">

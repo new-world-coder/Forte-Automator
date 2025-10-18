@@ -174,9 +174,12 @@ export default function Home() {
   // Add debugging to see if we reach this point
   console.log('Home component rendering', { isConnected, address, rules });
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <HeaderBar />
+  // Add a simple error boundary fallback
+  if (typeof window !== 'undefined') {
+    try {
+      return (
+        <div className="min-h-screen bg-gray-50">
+          <HeaderBar />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header Section */}

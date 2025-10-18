@@ -1,14 +1,14 @@
+'use client';
+
 import React from 'react';
 import Button from './ui/Button';
+import { useFlowWallet } from '@/lib/hooks/useFlowWallet';
 
-interface HeaderBarProps {
-  walletAddress: string | null;
-  onConnectWallet: () => void;
-}
-
-export default function HeaderBar({ walletAddress, onConnectWallet }: HeaderBarProps) {
-  const displayAddress = walletAddress 
-    ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
+export default function HeaderBar() {
+  const { address, isConnected, loading, connectWallet, disconnectWallet } = useFlowWallet();
+  
+  const displayAddress = address 
+    ? `${address.slice(0, 6)}...${address.slice(-4)}`
     : null;
 
   return (
@@ -24,16 +24,26 @@ export default function HeaderBar({ walletAddress, onConnectWallet }: HeaderBarP
 
           {/* Right: Wallet connection */}
           <div className="flex items-center space-x-4">
-            {walletAddress ? (
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm font-medium text-gray-700">
-                  {displayAddress}
-                </span>
+            {isConnected && address ? (
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-gray-700">
+                    {displayAddress}
+                  </span>
+                </div>
+                <Button 
+                  variant="secondary" 
+                  onClick={disconnectWallet}
+                  disabled={loading}
+                  className="text-xs"
+                >
+                  Disconnect
+                </Button>
               </div>
             ) : (
-              <Button onClick={onConnectWallet}>
-                Connect Wallet
+              <Button onClick={connectWallet} disabled={loading}>
+                {loading ? 'Connecting...' : 'Connect Flow Wallet'}
               </Button>
             )}
           </div>

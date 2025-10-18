@@ -5,18 +5,16 @@ import HeaderBar from '@/components/HeaderBar';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { useFlowWallet } from '@/lib/hooks/useFlowWallet';
 
 export default function SettingsPage() {
-  const [walletAddress] = useState('0x742d35Cc6634C0532925a3b8D7dFCCB7c1bD2E5F');
+  const { address, isConnected } = useFlowWallet();
   const [agentEnabled, setAgentEnabled] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <HeaderBar 
-        walletAddress={walletAddress}
-        onConnectWallet={() => {}}
-      />
+      <HeaderBar />
       
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
@@ -31,10 +29,10 @@ export default function SettingsPage() {
             <div className="space-y-4">
               <Input
                 label="Connected Wallet"
-                value={walletAddress}
+                value={address || ''}
                 onChange={() => {}}
                 disabled
-                placeholder="No wallet connected"
+                placeholder={isConnected ? "Wallet connected" : "No wallet connected"}
               />
               <Button variant="secondary">Change Wallet</Button>
             </div>

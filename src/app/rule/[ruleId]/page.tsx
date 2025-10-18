@@ -17,7 +17,7 @@ export default function RuleDetailPage() {
   if (!rule) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <HeaderBar walletAddress="0x742d35Cc6634C0532925a3b8D7dFCCB7c1bD2E5F" onConnectWallet={() => {}} />
+        <HeaderBar />
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Rule not found</h1>
@@ -32,7 +32,7 @@ export default function RuleDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <HeaderBar walletAddress="0x742d35Cc6634C0532925a3b8D7dFCCB7c1bD2E5F" onConnectWallet={() => {}} />
+      <HeaderBar />
       
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back navigation */}

@@ -1,33 +1,78 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import HeaderBar from '@/components/HeaderBar';
 import RuleCard from '@/components/RuleCard';
 import RuleEditorModal from '@/components/RuleEditorModal';
 import { mockRules } from '@/lib/mockData';
 import { RuleSummary, RuleDetail } from '@/lib/types';
+import { useFlowWallet } from '@/lib/hooks/useFlowWallet';
+import { useForteAutomation } from '@/lib/hooks/useForteAutomation';
 import Button from '@/components/ui/Button';
 
 export default function Home() {
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const { isConnected, address } = useFlowWallet();
+  const { createRule, updateRuleStatus, deleteRule, fetchUserRules, loading: automationLoading } = useForteAutomation();
   const [rules, setRules] = useState<RuleSummary[]>(mockRules);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingRule, setEditingRule] = useState<RuleDetail | undefined>();
+  const [loading, setLoading] = useState(false);
 
-  const handleConnectWallet = () => {
-    // Mock wallet connection
-    setWalletAddress('0x742d35Cc6634C0532925a3b8D7dFCCB7c1bD2E5F');
+  // Fetch user rules from blockchain when wallet connects
+  useEffect(() => {
+    if (isConnected && address) {
+      fetchUserRulesFromBlockchain();
+    }
+  }, [isConnected, address]);
+
+  const fetchUserRulesFromBlockchain = async () => {
+    if (!address) return;
+    
+    setLoading(true);
+    try {
+      const blockchainRules = await fetchUserRules(address);
+      if (blockchainRules.length > 0) {
+        setRules(blockchainRules);
+      }
+    } catch (error) {
+      console.error('Failed to fetch rules from blockchain:', error);
+      // Fallback to mock data for demo purposes
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleCreateRule = (ruleData: Partial<RuleDetail>) => {
-    const newRule: RuleSummary = {
-      id: Date.now().toString(),
-      name: ruleData.name || '',
-      condition: ruleData.condition || '',
-      status: ruleData.status || 'Active',
-      lastRunAt: new Date().toISOString(),
-    };
-    setRules(prev => [...prev, newRule]);
+  const handleCreateRule = async (ruleData: Partial<RuleDetail>) => {
+    if (!isConnected) {
+      alert('Please connect your wallet first');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Create rule on blockchain
+      const ruleId = await createRule({
+        name: ruleData.name || '',
+        condition: ruleData.condition || '',
+        action: ruleData.action || '',
+        isActive: ruleData.status === 'Active',
+      });
+
+      // Add to local state (temporary until blockchain fetch)
+      const newRule: RuleSummary = {
+        id: ruleId,
+        name: ruleData.name || '',
+        condition: ruleData.condition || '',
+        status: ruleData.status || 'Active',
+        lastRunAt: new Date().toISOString(),
+      };
+      setRules(prev => [...prev, newRule]);
+    } catch (error) {
+      console.error('Failed to create rule:', error);
+      alert('Failed to create rule. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEditRule = (rule: RuleSummary) => {
@@ -50,26 +95,54 @@ export default function Home() {
     }
   };
 
-  const handlePauseRule = (ruleId: string) => {
-    setRules(prev => prev.map(rule => 
-      rule.id === ruleId 
-        ? { ...rule, status: rule.status === 'Active' ? 'Paused' : 'Active' }
-        : rule
-    ));
+  const handlePauseRule = async (ruleId: string) => {
+    if (!isConnected) {
+      alert('Please connect your wallet first');
+      return;
+    }
+
+    const rule = rules.find(r => r.id === ruleId);
+    if (!rule) return;
+
+    setLoading(true);
+    try {
+      const newStatus = rule.status === 'Active' ? 'Paused' : 'Active';
+      await updateRuleStatus(ruleId, newStatus === 'Active');
+      
+      setRules(prev => prev.map(r => 
+        r.id === ruleId ? { ...r, status: newStatus } : r
+      ));
+    } catch (error) {
+      console.error('Failed to update rule status:', error);
+      alert('Failed to update rule. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDeleteRule = (ruleId: string) => {
+  const handleDeleteRule = async (ruleId: string) => {
+    if (!isConnected) {
+      alert('Please connect your wallet first');
+      return;
+    }
+
     if (confirm('Are you sure you want to delete this rule?')) {
-      setRules(prev => prev.filter(rule => rule.id !== ruleId));
+      setLoading(true);
+      try {
+        await deleteRule(ruleId);
+        setRules(prev => prev.filter(rule => rule.id !== ruleId));
+      } catch (error) {
+        console.error('Failed to delete rule:', error);
+        alert('Failed to delete rule. Please try again.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <HeaderBar 
-        walletAddress={walletAddress}
-        onConnectWallet={handleConnectWallet}
-      />
+      <HeaderBar />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header Section */}
@@ -78,8 +151,11 @@ export default function Home() {
             <h1 className="text-2xl font-bold text-gray-900">My Rules</h1>
             <p className="text-gray-600 mt-1">Manage your automation rules</p>
           </div>
-          <Button onClick={() => setShowCreateModal(true)}>
-            + New Rule
+          <Button 
+            onClick={() => setShowCreateModal(true)}
+            disabled={!isConnected || loading}
+          >
+            {loading ? 'Loading...' : isConnected ? '+ New Rule' : 'Connect Wallet First'}
           </Button>
         </div>
 

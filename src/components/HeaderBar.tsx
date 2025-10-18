@@ -1,15 +1,41 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Button from './ui/Button';
 import { useFlowWallet } from '@/lib/hooks/useFlowWallet';
+import { useAppNotifications } from '@/lib/contexts/NotificationContext';
 
 export default function HeaderBar() {
-  const { address, isConnected, loading, connectWallet, disconnectWallet } = useFlowWallet();
+  const { address, isConnected, loading, connectWallet, disconnectWallet, user } = useFlowWallet();
+  const { showWalletConnected, showWalletDisconnected, showWalletError } = useAppNotifications();
   
   const displayAddress = address 
     ? `${address.slice(0, 6)}...${address.slice(-4)}`
     : null;
+
+  // Show notifications when wallet connection status changes
+  useEffect(() => {
+    if (user.loggedIn && address && !loading) {
+      showWalletConnected(address);
+    }
+  }, [user.loggedIn, address, loading, showWalletConnected]);
+
+  const handleConnect = async () => {
+    try {
+      await connectWallet();
+    } catch (error) {
+      showWalletError(error instanceof Error ? error.message : 'Failed to connect wallet');
+    }
+  };
+
+  const handleDisconnect = async () => {
+    try {
+      await disconnectWallet();
+      showWalletDisconnected();
+    } catch (error) {
+      showWalletError(error instanceof Error ? error.message : 'Failed to disconnect wallet');
+    }
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white shadow-sm border-b border-gray-200">
@@ -34,7 +60,7 @@ export default function HeaderBar() {
                 </div>
                 <Button 
                   variant="secondary" 
-                  onClick={disconnectWallet}
+                  onClick={handleDisconnect}
                   disabled={loading}
                   className="text-xs"
                 >
@@ -42,7 +68,7 @@ export default function HeaderBar() {
                 </Button>
               </div>
             ) : (
-              <Button onClick={connectWallet} disabled={loading}>
+              <Button onClick={handleConnect} disabled={loading}>
                 {loading ? 'Connecting...' : 'Connect Flow Wallet'}
               </Button>
             )}

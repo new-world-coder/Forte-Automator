@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Button from './ui/Button';
 import Input from './ui/Input';
+import { usePriceOracle } from '@/lib/hooks/usePriceOracle';
 
 export interface ConditionType {
   type: 'price' | 'balance' | 'time' | 'custom';
@@ -33,6 +34,8 @@ export default function RuleBuilder({
   action 
 }: RuleBuilderProps) {
   const [activeTab, setActiveTab] = useState<'condition' | 'action'>('condition');
+  const { getTokenPrice, prices, loading: priceLoading } = usePriceOracle();
+  const [currentPrice, setCurrentPrice] = useState<number | null>(null);
 
   const conditionTypes = [
     { value: 'price', label: 'Token Price' },
@@ -57,6 +60,23 @@ export default function RuleBuilder({
     const updated = { ...action, [field]: value } as ActionType;
     onActionChange(updated);
   };
+
+  // Fetch current token price when token changes
+  useEffect(() => {
+    if (condition?.type === 'price' && condition.token) {
+      const fetchPrice = async () => {
+        try {
+          const priceData = await getTokenPrice(condition.token!.toUpperCase());
+          if (priceData) {
+            setCurrentPrice(priceData.price);
+          }
+        } catch (error) {
+          console.error('Failed to fetch price:', error);
+        }
+      };
+      fetchPrice();
+    }
+  }, [condition?.token, condition?.type, getTokenPrice]);
 
   const renderConditionBuilder = () => {
     if (!condition) return null;
@@ -86,13 +106,22 @@ export default function RuleBuilder({
                 </select>
               </div>
             </div>
-            <Input
-              label="Price (USD)"
-              value={condition.value}
-              onChange={(value) => updateCondition('value', value)}
-              type="number"
-              placeholder="2000"
-            />
+            <div className="space-y-2">
+              <Input
+                label="Price (USD)"
+                value={condition.value}
+                onChange={(value) => updateCondition('value', value)}
+                type="number"
+                placeholder="2000"
+              />
+              {condition.token && currentPrice && (
+                <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                  <span className="font-medium">Current {condition.token} price:</span> 
+                  {' '}${currentPrice.toFixed(2)}
+                  {priceLoading && <span className="ml-2 text-blue-600">(updating...)</span>}
+                </div>
+              )}
+            </div>
           </div>
         );
 

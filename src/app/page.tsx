@@ -8,11 +8,13 @@ import { mockRules } from '@/lib/mockData';
 import { RuleSummary, RuleDetail } from '@/lib/types';
 import { useFlowWallet } from '@/lib/hooks/useFlowWallet';
 import { useForteAutomation } from '@/lib/hooks/useForteAutomation';
+import { useAppNotifications } from '@/lib/contexts/NotificationContext';
 import Button from '@/components/ui/Button';
 
 export default function Home() {
   const { isConnected, address } = useFlowWallet();
   const { createRule, updateRuleStatus, deleteRule, fetchUserRules, loading: automationLoading } = useForteAutomation();
+  const { showRuleCreated, showRuleUpdated, showRuleDeleted, showRuleError } = useAppNotifications();
   const [rules, setRules] = useState<RuleSummary[]>(mockRules);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingRule, setEditingRule] = useState<RuleDetail | undefined>();
@@ -44,7 +46,7 @@ export default function Home() {
 
   const handleCreateRule = async (ruleData: Partial<RuleDetail>) => {
     if (!isConnected) {
-      alert('Please connect your wallet first');
+      showRuleError('Please connect your wallet first');
       return;
     }
 
@@ -67,9 +69,12 @@ export default function Home() {
         lastRunAt: new Date().toISOString(),
       };
       setRules(prev => [...prev, newRule]);
+      
+      // Show success notification
+      showRuleCreated(ruleData.name || 'Untitled Rule');
     } catch (error) {
       console.error('Failed to create rule:', error);
-      alert('Failed to create rule. Please try again.');
+      showRuleError(error instanceof Error ? error.message : 'Failed to create rule. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -97,7 +102,7 @@ export default function Home() {
 
   const handlePauseRule = async (ruleId: string) => {
     if (!isConnected) {
-      alert('Please connect your wallet first');
+      showRuleError('Please connect your wallet first');
       return;
     }
 
@@ -112,9 +117,11 @@ export default function Home() {
       setRules(prev => prev.map(r => 
         r.id === ruleId ? { ...r, status: newStatus } : r
       ));
+      
+      showRuleUpdated(rule.name);
     } catch (error) {
       console.error('Failed to update rule status:', error);
-      alert('Failed to update rule. Please try again.');
+      showRuleError(error instanceof Error ? error.message : 'Failed to update rule. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -122,18 +129,22 @@ export default function Home() {
 
   const handleDeleteRule = async (ruleId: string) => {
     if (!isConnected) {
-      alert('Please connect your wallet first');
+      showRuleError('Please connect your wallet first');
       return;
     }
+
+    const rule = rules.find(r => r.id === ruleId);
+    if (!rule) return;
 
     if (confirm('Are you sure you want to delete this rule?')) {
       setLoading(true);
       try {
         await deleteRule(ruleId);
-        setRules(prev => prev.filter(rule => rule.id !== ruleId));
+        setRules(prev => prev.filter(r => r.id !== ruleId));
+        showRuleDeleted(rule.name);
       } catch (error) {
         console.error('Failed to delete rule:', error);
-        alert('Failed to delete rule. Please try again.');
+        showRuleError(error instanceof Error ? error.message : 'Failed to delete rule. Please try again.');
       } finally {
         setLoading(false);
       }

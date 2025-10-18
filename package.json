@@ -7,7 +7,10 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "deploy": "vercel"
+    "deploy": "vercel",
+    "deploy:contracts": "node scripts/deploy-contracts.js",
+    "testnet:setup": "echo 'Setting up Flow testnet environment...' && flow accounts create && echo 'Please fund your account with testnet FLOW'",
+    "testnet:deploy": "npm run deploy:contracts"
   },
   "dependencies": {
     "@onflow/fcl": "^1.20.2",

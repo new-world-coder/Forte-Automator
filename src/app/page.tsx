@@ -171,6 +171,9 @@ export default function Home() {
     }
   };
 
+  // Add debugging to see if we reach this point
+  console.log('Home component rendering', { isConnected, address, rules });
+
   return (
     <div className="min-h-screen bg-gray-50">
       <HeaderBar />

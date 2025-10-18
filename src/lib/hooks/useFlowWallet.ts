@@ -17,7 +17,11 @@ export const useFlowWallet = () => {
 
   useEffect(() => {
     // Listen for user changes
-    fcl.currentUser.subscribe(setUser);
+    try {
+      fcl.currentUser.subscribe(setUser);
+    } catch (error) {
+      console.error('Failed to subscribe to FCL current user:', error);
+    }
   }, []);
 
   const connectWallet = async () => {

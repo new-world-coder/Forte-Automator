@@ -138,7 +138,7 @@ export default function AgentManager() {
             </svg>
             <h3 className="text-lg font-medium text-gray-900 mb-2">No Agents Found</h3>
             <p className="text-gray-600 mb-4">
-              You don't have any automation agents registered yet. 
+              You don&apos;t have any automation agents registered yet. 
               Create a rule first, then register it as an agent to enable automatic execution.
             </p>
           </div>

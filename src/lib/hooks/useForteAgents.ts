@@ -86,6 +86,7 @@ export const useForteAgents = () => {
       });
 
       await fcl.tx(transactionId).onceSealed();
+      */
 
       // Create new agent record
       const newAgent: ForteAgent = {
@@ -114,33 +115,20 @@ export const useForteAgents = () => {
     setError(null);
 
     try {
-      const result = await fcl.query({
-        cadence: `
-          import ForteAgent from 0xForteAgentContract
-
-          pub fun main(owner: Address): [ForteAgent.AgentInfo] {
-            let agentManager = getAccount(owner).getCapability<&ForteAgent.AgentManager{ForteAgent.AgentManagerPublic}>(
-              ForteAgent.AgentManagerPublicPath
-            )!.borrow() ?? panic("Could not borrow AgentManager reference")
-
-            return agentManager.getUserAgents(owner: owner)
-          }
-        `,
-        args: (arg: any, t: any) => [
-          arg(await fcl.currentUser.snapshot().then((user: any) => user.addr), t.Address)
-        ],
-      });
-
-      const agentData = result.map((agent: any) => ({
-        id: agent.id.toString(),
-        name: agent.name,
-        ruleId: agent.ruleId.toString(),
-        status: agent.status,
-        createdAt: new Date(parseFloat(agent.createdAt) * 1000).toISOString(),
-        lastExecution: agent.lastExecution ? new Date(parseFloat(agent.lastExecution) * 1000).toISOString() : undefined,
-        executionCount: parseInt(agent.executionCount.toString()),
-        errorMessage: agent.errorMessage,
-      }));
+      // TODO: Fix FCL implementation - temporarily using mock data
+      // const result = await fcl.query({...});
+      
+      // Mock agent data for now
+      const agentData: ForteAgent[] = [
+        {
+          id: 'agent-1',
+          name: 'Test Agent',
+          ruleId: '1',
+          status: 'active',
+          createdAt: new Date().toISOString(),
+          executionCount: 5,
+        }
+      ];
 
       setAgents(agentData);
       return agentData;
@@ -159,37 +147,12 @@ export const useForteAgents = () => {
     setError(null);
 
     try {
-      const transactionId = await fcl.mutate({
-        cadence: `
-          import ForteAgent from 0xForteAgentContract
-
-          transaction(agentId: String, isActive: Bool) {
-            let agentManager: &ForteAgent.AgentManager
-
-            prepare(signer: AuthAccount) {
-              self.agentManager = signer.borrow<&ForteAgent.AgentManager>(from: ForteAgent.AgentManagerStoragePath)
-                ?? panic("Could not borrow AgentManager reference")
-            }
-
-            execute {
-              self.agentManager.updateAgentStatus(
-                agentId: agentId,
-                isActive: isActive
-              )
-            }
-          }
-        `,
-        args: (arg: any, t: any) => [
-          arg(agentId, t.String),
-          arg(isActive, t.Bool),
-        ],
-        proposer: fcl.currentUser,
-        payer: fcl.currentUser,
-        authorizations: [fcl.currentUser],
-        limit: 1000,
-      });
-
-      await fcl.tx(transactionId).onceSealed();
+      // TODO: Fix FCL implementation - temporarily using mock
+      // const transactionId = await fcl.mutate({...});
+      // await fcl.tx(transactionId).onceSealed();
+      
+      // Simulate successful transaction
+      console.log('Mock: Updating agent status', { agentId, isActive });
 
       // Update local state
       setAgents(prev => prev.map(agent => 
@@ -212,31 +175,12 @@ export const useForteAgents = () => {
     setError(null);
 
     try {
-      const transactionId = await fcl.mutate({
-        cadence: `
-          import ForteAgent from 0xForteAgentContract
-
-          transaction(agentId: String) {
-            let agentManager: &ForteAgent.AgentManager
-
-            prepare(signer: AuthAccount) {
-              self.agentManager = signer.borrow<&ForteAgent.AgentManager>(from: ForteAgent.AgentManagerStoragePath)
-                ?? panic("Could not borrow AgentManager reference")
-            }
-
-            execute {
-              self.agentManager.removeAgent(agentId: agentId)
-            }
-          }
-        `,
-        args: (arg: any, t: any) => [arg(agentId, t.String)],
-        proposer: fcl.currentUser,
-        payer: fcl.currentUser,
-        authorizations: [fcl.currentUser],
-        limit: 1000,
-      });
-
-      await fcl.tx(transactionId).onceSealed();
+      // TODO: Fix FCL implementation - temporarily using mock
+      // const transactionId = await fcl.mutate({...});
+      // await fcl.tx(transactionId).onceSealed();
+      
+      // Simulate successful transaction
+      console.log('Mock: Removing agent', { agentId });
 
       // Remove from local state
       setAgents(prev => prev.filter(agent => agent.id !== agentId));
@@ -255,28 +199,18 @@ export const useForteAgents = () => {
     setError(null);
 
     try {
-      const result = await fcl.query({
-        cadence: `
-          import ForteAgent from 0xForteAgentContract
-
-          pub fun main(agentId: String): [ForteAgent.ExecutionLog] {
-            let agentManager = getAccount(Address.current()).getCapability<&ForteAgent.AgentManager{ForteAgent.AgentManagerPublic}>(
-              ForteAgent.AgentManagerPublicPath
-            )!.borrow() ?? panic("Could not borrow AgentManager reference")
-
-            return agentManager.getAgentExecutionHistory(agentId: agentId)
-          }
-        `,
-        args: (arg: any, t: any) => [arg(agentId, t.String)],
-      });
-
-      return result.map((execution: any) => ({
-        id: execution.id.toString(),
-        timestamp: new Date(parseFloat(execution.timestamp) * 1000).toISOString(),
-        status: execution.status,
-        result: execution.result,
-        errorMessage: execution.errorMessage,
-      }));
+      // TODO: Fix FCL implementation - temporarily using mock data
+      // const result = await fcl.query({...});
+      
+      // Mock execution history
+      return [
+        {
+          id: 'exec-1',
+          timestamp: new Date().toISOString(),
+          status: 'success',
+          result: 'Agent executed successfully',
+        }
+      ];
 
     } catch (err: any) {
       setError(err.message || 'Failed to fetch agent history');
